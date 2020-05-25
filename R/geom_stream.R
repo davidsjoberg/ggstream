@@ -65,6 +65,7 @@ make_smooth_density <- function(.df, bw = bw, n_grid = 5000){
 #'
 #' @export
 stack_densities <- function(data, bw = bw, n_grid = n_grid) {
+
   data <- purrr::map_dfr(data %>% split(data$group), ~make_smooth_density(.,
                                                                    bw = bw,
                                                                    n_grid = n_grid,
@@ -147,47 +148,3 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
     params = list(na.rm = na.rm, bw = bw, n_grid = n_grid, ...)
   )
 }
-
-
-
-
-# TEST -------------------------------------------------------------------------
-# REMOVE
-# pacman::p_load(tidyverse, hablar, KernSmooth, sf, feather, janitor, lubridate)
-# options(stringsAsFactors = F)
-#
-# # Test data
-#
-# library(tidyverse)
-# set.seed(123)
-# make_group <- function(group, n) {
-#   dplyr::tibble(
-#     x = 1:n,
-#     y = sample(1:100, n),
-#     group = group
-#   )
-# }
-#
-# tst_df <- purrr::map_dfr(c("A", "B", "C", "D"), ~make_group(., 20))
-#
-# tst_df %>%
-#   ggplot(aes(x, y, fill = group)) +
-#   geom_stream(alpha = .9, color = "black", size = .2, bw = .75) +
-#   scale_fill_viridis_d() +
-#   theme_void() +
-#   labs(fill = NULL) +
-#   theme(legend.position = "bottom")
-#
-# # Faceted
-# bind_rows(
-#   map_dfr(c("A", "B", "C", "D"), ~make_group(., 10)) %>% mutate(g = "No1"),
-#   map_dfr(c("A", "B", "C", "D"), ~make_group(., 10)) %>% mutate(g = "No2")
-# ) %>%
-#   ggplot(aes(x, y, fill = group)) +
-#   geom_density_stream(alpha = .9, color = "transparent", size = 1) +
-#   scale_fill_viridis_d() +
-#   theme_void() +
-#   facet_wrap(~g) +
-#   labs(fill = NULL) +
-#   theme(legend.position = "bottom")
-
