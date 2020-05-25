@@ -1,5 +1,3 @@
-utils::globalVariables(c(".data"))
-
 #' @title make_smooth_density
 #'
 #' Takes points and turns them into a density line.
@@ -13,32 +11,46 @@ utils::globalVariables(c(".data"))
 #' @return a data frame
 #'
 #' @export
-make_smooth_density <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x){
-  .group <- dplyr::first(.df$group)
-  .df <- .df %>% tidyr::drop_na()
-  range_dist <- max_x - min_x
-  bwidth = bw
+make_smooth_density <- function(.df, bw = bw, n_grid = 5000){
+
+  .group <- .df[1]
+
+  .df <-  .df[complete.cases(.df), ]
+
+  rnge <- range(.df$x, na.rm = T)
+
+  min_x <- rnge[1]
+
+  max_x <- rnge[2]
+
+  range_dist <- diff(rnge)
+
+  bwidth <- bw
 
   w <- .df$y / sum(.df$y)
+
   m <- stats::density(.df$x, weights = w, from = min_x - range_dist, to = max_x + range_dist, n = n_grid, bw = bwidth)
-  df <- dplyr::tibble(x = m$x,
-               y = m$y) %>%
-    dplyr::filter(dplyr::case_when(x <= max_x & x >= min_x ~ T,
-                     .data$y > 1/10000 * max(y) ~ T,
-                     T ~ F))
+
+  df <- data.frame(x = m$x,
+                   y = m$y)
+
+  df <- df[(df$x <= max_x & df$x >= min_x) | df$y > 1/10000 * max(df$y), ]
+
 
   # Unnormalize density so that height matches true data relative size
   group_min_x <- min(.df$x, na.rm = T)
+
   group_max_x <- max(.df$x, na.rm = T)
+
   group_average_y <- mean(.df$y)
-  mulitplier <- abs(group_max_x - group_min_x) * group_average_y
+
+  mulitplier <- abs(range_dist) * group_average_y
+
   df$y <- df$y * mulitplier
 
-  dplyr::tibble(
-    x = df$x,
-    y = df$y,
-    group = .group
-    )
+  data.frame(x = df$x,
+             y = df$y,
+             group = .group)
 }
 
 #' @title stack_densities
