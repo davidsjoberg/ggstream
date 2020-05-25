@@ -11,9 +11,9 @@
 #' @return a data frame
 #'
 #' @export
-make_smooth_density <- function(.df, bw = bw, n_grid = 5000){
+make_smooth_density <- function(.df, bw = 0.75, n_grid = 5000){
 
-  .group <- .df[1]
+  .group <- .df$group[1]
 
   .df <-  .df[complete.cases(.df), ]
 
@@ -38,9 +38,6 @@ make_smooth_density <- function(.df, bw = bw, n_grid = 5000){
 
 
   # Unnormalize density so that height matches true data relative size
-  group_min_x <- min(.df$x, na.rm = T)
-
-  group_max_x <- max(.df$x, na.rm = T)
 
   group_average_y <- mean(.df$y)
 
@@ -66,30 +63,18 @@ make_smooth_density <- function(.df, bw = bw, n_grid = 5000){
 #' @export
 stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 
-  data <- purrr::map_dfr(data %>% split(data$group), ~make_smooth_density(.,
-                                                                   bw = bw,
-                                                                   n_grid = n_grid,
-                                                                   min_x = range(data$x, na.rm = T)[1],
-                                                                   max_x = range(data$x, na.rm = T)[2]))
+  list <- lapply(split(data, data$group), make_smooth_density)
 
-  data <- data %>%
-    dplyr::mutate(group_tmp = factor(.data$group) %>% as.numeric()) %>%
-    dplyr::arrange(.data$x, .data$group_tmp) %>%
-    dplyr::group_by(.data$x) %>%
-    dplyr::mutate(ymin = purrr::accumulate(.data$y, ~.x + .y, .init = -sum(.data$y) / 2, .dir = "backward")[-1],
-           ymax = .data$ymin + .data$y) %>%
-    dplyr::ungroup()
+  data <- Reduce(rbind, list)
 
-  data <- purrr::map_dfr(data %>% split(data$group),
-                     ~{
-                       .x <- .x %>% dplyr::arrange(x)
-                       dplyr::tibble(
-                         x = c(.x$x, rev(.x$x)),
-                         y = c(.x$ymin, rev(.x$ymax)),
-                         group = dplyr::first(.x$group))
-                     }
-  )
-  data
+  data$group_tmp <- as.numeric(factor(data$group))
+
+  data <- data[order(data$x, data$group_tmp),]
+
+  data_list <- lapply(split(data, data$x), calc_y_offsets)
+
+  Reduce(rbind, data_list)
+
 }
 
 
