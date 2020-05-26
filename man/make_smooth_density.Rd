@@ -6,14 +6,14 @@
 
 Takes points and turns them into a density line.}
 \usage{
-make_smooth_density(.df, bw = bw, n_grid = n_grid, min_x, max_x)
+make_smooth_density(df, bw = bw, n_grid = n_grid)
 }
 \arguments{
-\item{.df}{a data frame that must contain x and y}
-
 \item{bw}{bandwidth of kernal density}
 
 \item{n_grid}{number of x points that should be calculated. The higher the more smooth plot.}
+
+\item{.df}{a data frame that must contain x and y}
 
 \item{min_x}{minimum x value of all groups}
 
