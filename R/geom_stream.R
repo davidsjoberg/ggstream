@@ -1,14 +1,14 @@
-#' @title make_smooth_density
-#'
-#' Takes points and turns them into a density line.
-#'
-#' @param .df a data frame that must contain x and y
-#' @param bw bandwidth of kernal density
-#' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
-#' @param min_x minimum x value of all groups
-#' @param max_x maximum x value of all groups
-#'
-#' @return a data frame
+# @title make_smooth_density
+#
+# Takes points and turns them into a density line.
+#
+# @param .df a data frame that must contain x and y
+# @param bw bandwidth of kernal density
+# @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+# @param min_x minimum x value of all groups
+# @param max_x maximum x value of all groups
+#
+# @return a data frame
 make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
 
   group <- df$group[1]
@@ -48,15 +48,15 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
              group = group)
 }
 
-#' @title stack_densities
-#'
-#' Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
-#'
-#' @param data a data frame
-#' @param bw bandwidth of kernal density
-#' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
-#'
-#' @return a data frame
+# @title stack_densities
+#
+# Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
+#
+# @param data a data frame
+# @param bw bandwidth of kernal density
+# @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+#
+# @return a data frame
 stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 
   list <- lapply(split(data, data$group), make_smooth_density, bw = bw, n_grid = n_grid)
