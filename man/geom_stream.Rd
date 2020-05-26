@@ -4,7 +4,7 @@
 \alias{geom_stream}
 \title{geom_stream
 
-stat to compute `geom_stream`}
+A streamgraph geom/stat for ggplot2}
 \usage{
 geom_stream(
   mapping = NULL,
@@ -46,5 +46,5 @@ a data frame
 \description{
 geom_stream
 
-stat to compute `geom_stream`
+A streamgraph geom/stat for ggplot2
 }
