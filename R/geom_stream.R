@@ -11,13 +11,13 @@
 #' @return a data frame
 #'
 #' @export
-make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
+make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
 
-  .group <- .df$group[1]
+  group <- df$group[1]
 
-  .df <-  .df[complete.cases(.df), ]
+  df <-  df[complete.cases(df), ]
 
-  rnge <- range(.df$x, na.rm = T)
+  rnge <- range(df$x, na.rm = T)
 
   min_x <- rnge[1]
 
@@ -27,9 +27,9 @@ make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
 
   bwidth <- bw
 
-  w <- .df$y / sum(.df$y)
+  w <- df$y / sum(df$y)
 
-  m <- stats::density(.df$x, weights = w, from = min_x - range_dist, to = max_x + range_dist, n = n_grid, bw = bwidth)
+  m <- stats::density(df$x, weights = w, from = min_x - range_dist, to = max_x + range_dist, n = n_grid, bw = bwidth)
 
   df <- data.frame(x = m$x,
                    y = m$y)
@@ -39,7 +39,7 @@ make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
 
   # Unnormalize density so that height matches true data relative size
 
-  group_average_y <- mean(.df$y)
+  group_average_y <- mean(df$y)
 
   mulitplier <- abs(range_dist) * group_average_y
 
@@ -47,7 +47,7 @@ make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
 
   data.frame(x = df$x,
              y = df$y,
-             group = .group)
+             group = group)
 }
 
 #' @title stack_densities
@@ -61,21 +61,23 @@ make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
 #' @return a data frame
 #'
 #' @export
-stack_densities <- function(data, bw = bw, n_grid = n_grid, name = name) {
+stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 
-  list <- lapply(split(data, data$group), make_smooth_density)
+  list <- lapply(split(data, data$group), make_smooth_density, bw = bw, n_grid = n_grid)
 
-  data <- Reduce(rbind, list)
+  data <- do.call(rbind, list)
 
   data$group_tmp <- as.numeric(factor(data$group))
 
   data <- data[order(data$x, data$group_tmp),]
 
-  data$PANEL <- name
-
   data_list <- lapply(split(data, data$x), calc_y_offsets)
 
-  Reduce(rbind, data_list)
+  data <- do.call(rbind, data_list)
+
+  data <- lapply(split(data, data$group), extend_data)
+
+  do.call(rbind, data)
 
 }
 
@@ -88,25 +90,24 @@ StatStreamDensity <- ggplot2::ggproto(
   extra_params = c("bw", "n_grid", "na.rm"),
 
   setup_data = function(data, params) {
+
     .panels <- unique(data$PANEL)
 
-    .split_panels <-
-      split(data, .panels)
-
-    .per_panel <-
-      lapply(
-        .split_panels,
+    .per_panel <- lapply(
+      split(data, .panels),
         stack_densities,
         bw = params$bw,
-        n_grid = params$n_grid,
-        name = names(.split_panels)
+        n_grid = params$n_grid
       )
 
     .per_panel <-
-      Reduce(rbind, .per_panel)
+      lapply(seq_along(.per_panel), function(x) {
+           data.frame(.per_panel, PANEL = .panels[x])
+      })
 
-    .per_panel$PANEL <-
-      factor(.per_panel$PANEL)
+    .per_panel <- setNames(do.call(rbind, .per_panel), c("x", "y", "group", "PANEL"))
+
+    .per_panel$PANEL <- factor(.per_panel$PANEL)
 
     merge(unique(data[!names(data) %in% c("x", "y")]), .per_panel, by = c("group", "PANEL"))
 
