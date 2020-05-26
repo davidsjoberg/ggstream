@@ -7,3 +7,13 @@ calc_y_offsets <- function(df) {
   return(df)
 
 }
+
+extend_data <- function(df) {
+
+  df <- df[order(df$x), ]
+
+  data.frame( x = c(df$x, rev(df$x)),
+              y = c(df$ymin, rev(df$ymax)),
+              group = unique(df$group))
+
+}
