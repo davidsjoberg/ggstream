@@ -13,7 +13,7 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
 
   group <- df$group[1]
 
-  df <-  df[complete.cases(df), ]
+  df <-  df[stats::complete.cases(df), ]
 
   rnge <- range(df$x, na.rm = T)
 
