@@ -102,7 +102,7 @@ StatStreamDensity <- ggplot2::ggproto(
 
     .per_panel <-
       lapply(seq_along(.per_panel), function(x) {
-           data.frame(.per_panel, PANEL = .panels[x])
+           data.frame(.per_panel[[x]], PANEL = .panels[x])
       })
 
     .per_panel <- setNames(do.call(rbind, .per_panel), c("x", "y", "group", "PANEL"))
