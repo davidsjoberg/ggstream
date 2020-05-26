@@ -11,7 +11,7 @@
 #' @return a data frame
 #'
 #' @export
-make_smooth_density <- function(.df, bw = 0.75, n_grid = 5000){
+make_smooth_density <- function(.df, bw = bw, n_grid = n_grid) {
 
   .group <- .df$group[1]
 
