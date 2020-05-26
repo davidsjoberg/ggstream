@@ -9,8 +9,6 @@
 #' @param max_x maximum x value of all groups
 #'
 #' @return a data frame
-#'
-#' @export
 make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
 
   group <- df$group[1]
@@ -59,8 +57,6 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
 #'
 #' @return a data frame
-#'
-#' @export
 stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 
   list <- lapply(split(data, data$group), make_smooth_density, bw = bw, n_grid = n_grid)
@@ -121,7 +117,7 @@ StatStreamDensity <- ggplot2::ggproto(
 
 #' @title geom_stream
 #'
-#' stat to compute `geom_stream`
+#' A streamgraph geom/stat for ggplot2
 #'
 #' @param mapping provide you own mapping. both x and y need to be numeric.
 #' @param data provide you own data
