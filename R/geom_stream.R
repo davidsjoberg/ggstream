@@ -61,7 +61,7 @@ make_smooth_density <- function(.df, bw = 0.75, n_grid = 5000){
 #' @return a data frame
 #'
 #' @export
-stack_densities <- function(data, bw = bw, n_grid = n_grid) {
+stack_densities <- function(data, bw = bw, n_grid = n_grid, name = name) {
 
   list <- lapply(split(data, data$group), make_smooth_density)
 
@@ -71,6 +71,8 @@ stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 
   data <- data[order(data$x, data$group_tmp),]
 
+  data$PANEL <- name
+
   data_list <- lapply(split(data, data$x), calc_y_offsets)
 
   Reduce(rbind, data_list)
@@ -78,31 +80,42 @@ stack_densities <- function(data, bw = bw, n_grid = n_grid) {
 }
 
 
-StatStreamDensity <- ggplot2::ggproto("StatStreamDensity", ggplot2::Stat,
-                             required_aes = c("x", "y"),
-                             extra_params = c("bw", "n_grid", "na.rm"),
-                             setup_data = function(data, params) {
-                               .panels <- unique(data$PANEL)
-                               .per_panel <- purrr::map_dfr(.panels, ~{
-                                 data %>%
-                                   dplyr::filter(PANEL == .x) %>%
-                                   stack_densities(
-                                     params$bw, params$n_grid
-                                     ) %>%
-                                   dplyr::mutate(PANEL = .x)
-                               }) %>%
-                                 dplyr::mutate(PANEL = factor(PANEL))
 
-                               suppressWarnings(data %>%
-                                 dplyr::select(-x, -y) %>%
-                                 dplyr::distinct() %>%
-                                 dplyr::left_join(.per_panel, by = c("group", "PANEL"))
-                               )
-                             },
+StatStreamDensity <- ggplot2::ggproto(
+  "StatStreamDensity",
+  ggplot2::Stat,
+  required_aes = c("x", "y"),
+  extra_params = c("bw", "n_grid", "na.rm"),
 
-                             compute_group = function(data, scales) {
-                               data
-                             }
+  setup_data = function(data, params) {
+    .panels <- unique(data$PANEL)
+
+    .split_panels <-
+      split(data, .panels)
+
+    .per_panel <-
+      lapply(
+        .split_panels,
+        stack_densities,
+        bw = params$bw,
+        n_grid = params$n_grid,
+        name = names(.split_panels)
+      )
+
+    .per_panel <-
+      Reduce(rbind, .per_panel)
+
+    .per_panel$PANEL <-
+      factor(.per_panel$PANEL)
+
+    merge(unique(data[!names(data) %in% c("x", "y")]), .per_panel, by = c("group", "PANEL"))
+
+
+  },
+
+  compute_group = function(data, scales) {
+    data
+  }
 )
 
 #' @title geom_stream
