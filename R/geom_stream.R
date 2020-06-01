@@ -9,19 +9,13 @@
 # @param max_x maximum x value of all groups
 #
 # @return a data frame
-make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
+make_smooth_density <- function(df, bw = bw, n_grid = n_grid, min_x, max_x) {
 
   group <- df$group[1]
 
   df <-  df[stats::complete.cases(df), ]
 
-  rnge <- range(df$x, na.rm = T)
-
-  min_x <- rnge[1]
-
-  max_x <- rnge[2]
-
-  range_dist <- diff(rnge)
+  range_dist <- diff(c(min_x, max_x))
 
   bwidth <- bw
 
@@ -48,18 +42,127 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid) {
              group = group)
 }
 
-# @title stack_densities
+# @title make_smooth_loess
 #
-# Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
+# Takes points and turns them into a LOESS-estimated line.
 #
-# @param data a data frame
+# @param df a data frame that must contain x and y
 # @param bw bandwidth of kernal density
 # @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+# @param min_x minimum x value of all groups
+# @param max_x maximum x value of all groups
 #
 # @return a data frame
-stack_densities <- function(data, bw = bw, n_grid = n_grid) {
+# @export
+make_smooth_loess <- function(df, bw = bw, n_grid = n_grid, min_x, max_x){
 
-  list <- lapply(split(data, data$group), make_smooth_density, bw = bw, n_grid = n_grid)
+  group <- df$group[[1]]
+
+  df <-  df[stats::complete.cases(df), ]
+
+  bwidth <- bw
+
+  m <- stats::loess(y ~ x, df, span = bw)
+
+  x_range <- seq(min_x, max_x, length.out = n_grid)
+
+  df <- data.frame(x = x_range,
+                   y = stats::predict(m, x_range))
+
+  df$y <- ifelse(df$y < 0, 0, df$y)
+
+  df <- df[stats::complete.cases(df), ]
+
+  df$group <- group
+
+  df
+}
+
+
+# @title make_connect_dots
+#
+# Returns n number of points from data that perfectly fits data.
+#
+# @param df a data frame that must contain x and y
+# @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+# @param min_x minimum x value of all groups
+# @param max_x maximum x value of all groups
+#
+# @return a data frame
+#
+# @export
+make_connect_dots <- function(df, n_grid = n_grid, min_x, max_x, ...){
+
+  new_y <- sapply(split(df, list(df$x, df$group)), function(x) mean(x$y))
+
+  df <- unique(df[c("x", "group")])
+
+  df$y <- new_y
+
+  group <- df$group[[1]]
+
+  df <-  df[stats::complete.cases(df), ]
+
+  range_x <- seq(min_x, max_x, length.out = n_grid)
+
+  steps <- df$x[-1]
+
+  outside_local_range <- range_x[range_x < min(df$x) | range_x > max(df$x)]
+
+  inside_local_range <- range_x[range_x >= min(df$x) & range_x <= max(df$x)]
+
+  df <- data.frame(xlag = c(NA, utils::head(df$x, -1)),
+             ylag = c(NA, utils::head(df$y, -1)),
+             x = df$x,
+             y = df$y)
+
+  df <-  df[stats::complete.cases(df), ]
+
+
+  inrange_out <- do.call(rbind, apply(df, 1, build_range, inside_range = inside_local_range))
+
+  out <- rbind(inrange_out,
+    data.frame(x = outside_local_range,
+             y = rep(0, length(outside_local_range))))
+
+   out$group <- group
+
+   out[order(out$x),]
+
+}
+
+
+
+#' @title stack_densities
+#'
+#' Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
+#'
+#' @param data a data frame
+#' @param bw bandwidth of kernal density
+#' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+#' @param center_fun a function that returns the y center for each possible x in range of x.
+#' @param method which estimation should be applied. Default is LOESS.
+#'
+#' @return a data frame
+#'
+#'
+#' @export
+stack_densities <- function(data, bw = bw, n_grid = n_grid, center_fun = center_fun, method = method){
+
+  if (is.null(center_fun)) {
+    center_fun <- function(x) {
+      return(0)
+    }
+  }
+
+  fun <- switch(method,
+         density = make_smooth_density,
+         loess = make_smooth_loess,
+         raw = make_connect_dots)
+
+  x_range <- range(data$x)
+
+  list <- lapply(split(data, data$group), fun, bw = bw, n_grid = n_grid, min_x = x_range[1], max_x = x_range[2])
 
   data <- do.call(rbind, list)
 
@@ -70,6 +173,10 @@ stack_densities <- function(data, bw = bw, n_grid = n_grid) {
   data_list <- lapply(split(data, data$x), calc_y_offsets)
 
   data <- do.call(rbind, data_list)
+
+  data$ymin <- data$ymin + center_fun(data$x)
+
+  data$ymax <- data$ymax + center_fun(data$x)
 
   data <- lapply(split(data, data$group), extend_data)
 
@@ -83,7 +190,7 @@ StatStreamDensity <- ggplot2::ggproto(
   "StatStreamDensity",
   ggplot2::Stat,
   required_aes = c("x", "y"),
-  extra_params = c("bw", "n_grid", "na.rm"),
+  extra_params = c("bw", "n_grid", "na.rm", "center_fun", "method"),
 
   setup_data = function(data, params) {
 
@@ -93,7 +200,9 @@ StatStreamDensity <- ggplot2::ggproto(
       split(data, .panels),
         stack_densities,
         bw = params$bw,
-        n_grid = params$n_grid
+        n_grid = params$n_grid,
+        center_fun = params$center_fun,
+        method = params$method
       )
 
     .per_panel <-
@@ -117,7 +226,7 @@ StatStreamDensity <- ggplot2::ggproto(
 
 #' @title geom_stream
 #'
-#' A streamgraph geom/stat for ggplot2
+#' stat to compute `geom_stream`
 #'
 #' @param mapping provide you own mapping. both x and y need to be numeric.
 #' @param data provide you own data
@@ -127,19 +236,20 @@ StatStreamDensity <- ggplot2::ggproto(
 #' @param show.legend show legend in plot
 #' @param bw bandwidth of kernal density estimation
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+#' @param center_fun a function that returns the y center for each possible x in range of x.
+#' @param method Which method of estimation should be used. Default is LOESS, similar to `geom_smooth` but sets negative values to zero.
 #' @param inherit.aes should the geom inherits aestethics
 #' @param ... other arguments to be passed to the geom
 #'
 #' @return a data frame
-#'
-#'
 #' @export
 geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
-                       position = "identity", show.legend = NA,
-                       inherit.aes = TRUE, na.rm = T, bw = 0.75, n_grid = 3000, ...) {
+                        position = "identity", show.legend = NA,
+                        inherit.aes = TRUE, na.rm = T, bw = 0.75, n_grid = 3000, method = c("loess", "density", "raw"), center_fun = NULL, ...) {
+  method <- match.arg(method)
   ggplot2::layer(
     stat = StatStreamDensity, data = data, mapping = mapping, geom = geom,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(na.rm = na.rm, bw = bw, n_grid = n_grid, ...)
+    params = list(na.rm = na.rm, bw = bw, center_fun = center_fun, n_grid = n_grid, method = method, ...)
   )
 }

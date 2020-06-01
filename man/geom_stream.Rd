@@ -4,7 +4,7 @@
 \alias{geom_stream}
 \title{geom_stream
 
-A streamgraph geom/stat for ggplot2}
+stat to compute `geom_stream`}
 \usage{
 geom_stream(
   mapping = NULL,
@@ -16,6 +16,8 @@ geom_stream(
   na.rm = T,
   bw = 0.75,
   n_grid = 3000,
+  method = c("loess", "density", "raw"),
+  center_fun = NULL,
   ...
 )
 }
@@ -38,6 +40,10 @@ geom_stream(
 
 \item{n_grid}{number of x points that should be calculated. The higher the more smooth plot.}
 
+\item{method}{Which method of estimation should be used. Default is LOESS, similar to `geom_smooth` but sets negative values to zero.}
+
+\item{center_fun}{a function that returns the y center for each possible x in range of x.}
+
 \item{...}{other arguments to be passed to the geom}
 }
 \value{
@@ -46,5 +52,5 @@ a data frame
 \description{
 geom_stream
 
-A streamgraph geom/stat for ggplot2
+stat to compute `geom_stream`
 }
