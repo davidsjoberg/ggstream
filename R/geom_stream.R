@@ -133,20 +133,20 @@ make_connect_dots <- function(df, n_grid = n_grid, min_x, max_x, ...){
 
 
 
-#' @title stack_densities
-#'
-#' Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
-#'
-#' @param data a data frame
-#' @param bw bandwidth of kernal density
-#' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
-#' @param center_fun a function that returns the y center for each possible x in range of x.
-#' @param method which estimation should be applied. Default is LOESS.
-#'
-#' @return a data frame
-#'
-#'
-#' @export
+# @title stack_densities
+#
+# Takes density lines of equal x range and stack them on top of each other symmetrically aournd zero.
+#
+# @param data a data frame
+# @param bw bandwidth of kernal density
+# @param n_grid number of x points that should be calculated. The higher the more smooth plot.
+# @param center_fun a function that returns the y center for each possible x in range of x.
+# @param method which estimation should be applied. Default is LOESS.
+#
+# @return a data frame
+#
+#
+# @export
 stack_densities <- function(data, bw = bw, n_grid = n_grid, center_fun = center_fun, method = method){
 
   if (is.null(center_fun)) {
