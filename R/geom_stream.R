@@ -13,9 +13,15 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid, min_x, max_x) {
 
   group <- df$group[1]
 
-  df <-  df[stats::complete.cases(df), ]
+  group_min_x <- min(df$x, na.rm = T)
 
-  range_dist <- diff(c(min_x, max_x))
+  group_max_x <- max(df$x, na.rm = T)
+
+  range_dist <- max_x - min_x
+
+  group_average_y <- mean(df$y, na.rm = TRUE)
+
+  df <-  df[stats::complete.cases(df), ]
 
   bwidth <- bw
 
@@ -28,12 +34,9 @@ make_smooth_density <- function(df, bw = bw, n_grid = n_grid, min_x, max_x) {
 
   df <- df[(df$x <= max_x & df$x >= min_x) | df$y > 1/10000 * max(df$y), ]
 
+  # Un-normalize density so that height matches true data relative size
 
-  # Unnormalize density so that height matches true data relative size
-
-  group_average_y <- mean(df$y)
-
-  mulitplier <- abs(range_dist) * group_average_y
+  mulitplier <- abs(group_max_x - group_min_x) * group_average_y
 
   df$y <- df$y * mulitplier
 
@@ -194,10 +197,10 @@ StatStreamDensity <- ggplot2::ggproto(
 
   setup_data = function(data, params) {
 
-    .panels <- unique(data$PANEL)
+    panels <- unique(data$PANEL)
 
-    .per_panel <- lapply(
-      split(data, .panels),
+    per_panel <- lapply(
+      split(data, panels),
         stack_densities,
         bw = params$bw,
         n_grid = params$n_grid,
@@ -205,17 +208,35 @@ StatStreamDensity <- ggplot2::ggproto(
         method = params$method
       )
 
-    .per_panel <-
-      lapply(seq_along(.per_panel), function(x) {
-           data.frame(.per_panel[[x]], PANEL = .panels[x])
+    per_panel <-
+      lapply(seq_along(per_panel), function(x) {
+           data.frame(per_panel[[x]], PANEL = panels[x])
       })
 
-    .per_panel <- setNames(do.call(rbind, .per_panel), c("x", "y", "group", "PANEL"))
+    per_panel <- do.call(rbind, per_panel)
 
-    .per_panel$PANEL <- factor(.per_panel$PANEL)
+    per_panel$PANEL <- factor(per_panel$PANEL)
 
-    merge(unique(data[!names(data) %in% c("x", "y")]), .per_panel, by = c("group", "PANEL"))
+    # suppressWarnings(data %>%
+    #                    dplyr::select(-"x", -"y") %>%
+    #                    dplyr::distinct() %>%
+    #                    dplyr::left_join(per_panel, by = c("group", "PANEL")))
 
+    chars <- unique(data[!names(data) %in% c("x", "y")])
+
+    chars$id  <- 1:nrow(chars)
+
+    per_panel$p_id <- 1:nrow(per_panel)
+
+    out <- merge(chars, per_panel, by = c("group", "PANEL"), all.x = FALSE)
+
+    out <- out[order(out$id, out$p_id), ]
+
+    out <- out[!names(out) %in% c("id", "p_id")]
+
+    rownames(out) <- NULL
+
+    out
 
   },
 
