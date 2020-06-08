@@ -100,6 +100,8 @@ make_connect_dots <- function(df, n_grid = n_grid, min_x, max_x, ...){
 
   df <- unique(df[c("x", "group")])
 
+  df <- df[order(df$x),]
+
   df$y <- new_y
 
   group <- df$group[[1]]
@@ -121,8 +123,11 @@ make_connect_dots <- function(df, n_grid = n_grid, min_x, max_x, ...){
 
   df <-  df[stats::complete.cases(df), ]
 
+  inrange <- lapply(seq_len(nrow(df)), function(i) df[i,,drop=FALSE])
 
-  inrange_out <- do.call(rbind, apply(df, 1, build_range, inside_range = inside_local_range))
+  inrange <- lapply(seq_len(nrow(df)), function(i) build_range(df[i,,drop=FALSE], inside_range = inside_local_range))
+
+  inrange_out <- do.call(rbind, inrange)
 
   out <- rbind(inrange_out,
     data.frame(x = outside_local_range,
@@ -216,11 +221,6 @@ StatStreamDensity <- ggplot2::ggproto(
     per_panel <- do.call(rbind, per_panel)
 
     per_panel$PANEL <- factor(per_panel$PANEL)
-
-    # suppressWarnings(data %>%
-    #                    dplyr::select(-"x", -"y") %>%
-    #                    dplyr::distinct() %>%
-    #                    dplyr::left_join(per_panel, by = c("group", "PANEL")))
 
     chars <- unique(data[!names(data) %in% c("x", "y")])
 
