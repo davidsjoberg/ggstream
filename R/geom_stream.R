@@ -123,9 +123,7 @@ make_connect_dots <- function(df, n_grid = n_grid, min_x, max_x, ...){
 
   df <-  df[stats::complete.cases(df), ]
 
-  inrange <- lapply(seq_len(nrow(df)), function(i) df[i,,drop=FALSE])
-
-  inrange <- lapply(seq_len(nrow(df)), function(i) build_range(df[i,,drop=FALSE], inside_range = inside_local_range))
+  inrange <- apply(df, 1, build_range, inside_range = inside_local_range)
 
   inrange_out <- do.call(rbind, inrange)
 
