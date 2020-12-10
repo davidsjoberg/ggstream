@@ -1,0 +1,91 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+library(tidyverse)
+library(ggstream)
+```
+
+# ggstream
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of `ggstream` is to create a simple but powerful implementation of streamplot/streamgraph in `ggplot2`. A streamplot is a stacked area plot mostly used for time series.
+
+This is a development, expect breaking changes before submission to CRAN.
+
+## Installation
+
+You can install the development version of ggstream from github with:
+
+``` r
+remotes::install_github("davidsjoberg/ggstream")
+```
+
+## Examples
+
+The characteristic streamplot which creates a symmetrical area chart around the x axis.
+
+```{r pressure, echo = FALSE, fig.height=5, fig.width=9, dpi = 400}
+blockbusters %>%
+  ggplot(aes(year, box_office, fill = genre, label = genre, color = genre)) +
+    geom_stream(extra_span = 0.013, type = "mirror", n_grid = 3000, bw = .78) +
+    geom_stream_label(size = 4, type = "mirror", n_grid = 1000) +
+  cowplot::theme_minimal_vgrid(font_size = 24) +
+  theme(legend.position = "none") +
+  # scale_y_continuous(limits = c(-400, 400)) +
+  scale_colour_manual(values = paletteer::paletteer_d("dutchmasters::milkmaid") %>% colorspace::darken(.8)) +
+  scale_fill_manual(values = paletteer::paletteer_d("dutchmasters::milkmaid") %>% colorspace::lighten(.2)) +
+  labs(title = "Box office per genre 1977-2019",
+       x = NULL,
+       y = "Current dollars, billions")
+```
+
+Which is equivalent to a stacked area chart.
+
+```{r pressure2, echo = FALSE, fig.height=5, fig.width=9, dpi = 400}
+blockbusters %>%
+  ggplot(aes(year, box_office, fill = genre, label = genre, color = genre)) +
+    geom_stream(extra_span = 0.013, type = "ridge", n_grid = 3000, bw = .78) +
+    geom_stream_label(size = 4, type = "ridge", n_grid = 1000) +
+  cowplot::theme_minimal_vgrid(font_size = 24) +
+  theme(legend.position = "none") +
+  # scale_y_continuous(limits = c(-400, 400)) +
+  scale_colour_manual(values = paletteer::paletteer_d("dutchmasters::milkmaid") %>% colorspace::darken(.8)) +
+  scale_fill_manual(values = paletteer::paletteer_d("dutchmasters::milkmaid") %>% colorspace::lighten(.2)) +
+  labs(title = "Box office per genre 1977-2019",
+       x = NULL,
+       y = "Current dollars, billions")
+```
+
+## Basic usage
+
+This is a basic example:
+
+```{r example, fig.height=5, fig.width=9, dpi = 400}
+library(ggstream)
+
+ggplot(blockbusters, aes(year, box_office, fill = genre)) +
+  geom_stream()
+```
+
+
+`ggstream` also features a custom labeling geom that places decent default labels.
+
+```{r cars, fig.height=5, fig.width=9, dpi = 400}
+ggplot(blockbusters, aes(year, box_office, fill = genre)) +
+  geom_stream() +
+  geom_stream_label(aes(label = genre))
+```
+
+
