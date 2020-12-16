@@ -12,8 +12,8 @@ get_area <- function(.sh, ..x, .w) {
   out <- .sh %>%
     dplyr::filter(.data$x >= ..x,
                   .data$x <= (..x + .w)) %>%
-    dplyr::summarise(ymin = max(.data$xymin),
-              ymax = min(.data$xymax))
+    dplyr::summarise(ymin = max(.data$ymin),
+              ymax = min(.data$ymax))
   (out$ymax - out$ymin) * .w
 }
 
