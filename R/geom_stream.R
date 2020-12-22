@@ -67,7 +67,7 @@ stack_densities <- function(data,
 
   if(type == "mirror") {
     init <- quote(-(sum(.data$y) / 2))
-  } else if (type == "ridge") {
+  } else if (type %in% c("ridge", "proportional")) {
     init <- quote(0)
   }
 
@@ -90,7 +90,13 @@ stack_densities <- function(data,
   data <- data %>%
     dplyr::mutate(group_tmp = factor(.data$group) %>% as.numeric()) %>%
     dplyr::arrange(.data$x, .data$group_tmp) %>%
-    dplyr::group_by(.data$x) %>%
+    dplyr::group_by(.data$x)
+
+  if(type == "proportional") {
+    data <- data %>%
+    dplyr::mutate(y = .data$y / sum(.data$y, na.rm = T))
+  }
+  data <- data %>%
     dplyr::mutate(ymin = purrr::accumulate(.data$y, ~.x + .y,
                                            .init = eval(init),
                                            .dir = "backward")[-1],
@@ -241,7 +247,7 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
                        n_grid = 1000,
                        method = c("new_wiggle"),
                        center_fun = NULL,
-                       type = c("mirror", "ridge"),
+                       type = c("mirror", "ridge", "proportional"),
                        true_range = c("both", "min_x", "max_x", "none"), ...) {
 
   method <- match.arg(method)
@@ -290,10 +296,11 @@ geom_stream_label <- function(mapping = NULL, data = NULL, geom = "text",
                        inherit.aes = TRUE,
                        na.rm = T,
                        bw = 0.75,
-                       extra_span = 0.05,
+                       extra_span = 0.01,
                        n_grid = 100,
                        method = c("new_wiggle"),
-                       center_fun = NULL, type = c("mirror", "ridge"),
+                       center_fun = NULL,
+                       type = c("mirror", "ridge", "proportional"),
                        true_range = c("both", "min_x", "max_x", "none"), ...) {
   method <- match.arg(method)
   type <- match.arg(type)
