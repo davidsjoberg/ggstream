@@ -218,7 +218,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
 #' @param center_fun a function that returns the y center for each possible x in range of x.
 #' @param method Only `new wigle` is implemented so far.
-#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis.
+#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
 #' @param inherit.aes should the geom inherits aestethics
@@ -243,7 +243,7 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
                        inherit.aes = TRUE,
                        na.rm = T,
                        bw = 0.75,
-                       extra_span = 0.05,
+                       extra_span = 0.01,
                        n_grid = 1000,
                        method = c("new_wiggle"),
                        center_fun = NULL,
@@ -281,13 +281,12 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
 #' @param center_fun a function that returns the y center for each possible x in range of x.
 #' @param method Only `new wigle` is implemented so far.
-#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis.
+#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`.
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
 #' @param inherit.aes should the geom inherits aestethics
 #' @param ... other arguments to be passed to the geom
 #'
-#' @return a data frame
 #'
 #'
 #' @export
