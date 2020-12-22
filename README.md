@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/davidsjoberg/ggstream/workflows/R-CMD-check/badge.svg)](https://github.com/davidsjoberg/ggstream/actions)
 <!-- badges: end -->
 
 The goal of `ggstream` is to create a simple but powerful implementation

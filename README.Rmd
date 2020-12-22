@@ -21,6 +21,7 @@ options(warn = -1)
 # ggstream
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/davidsjoberg/ggstream/workflows/R-CMD-check/badge.svg)](https://github.com/davidsjoberg/ggstream/actions)
 <!-- badges: end -->
 
 The goal of `ggstream` is to create a simple but powerful implementation of streamplot/streamgraph in `ggplot2`. A streamplot is a stacked area plot mostly used for time series.
