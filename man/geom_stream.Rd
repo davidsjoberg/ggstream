@@ -15,11 +15,11 @@ geom_stream(
   inherit.aes = TRUE,
   na.rm = T,
   bw = 0.75,
-  extra_span = 0.05,
+  extra_span = 0.01,
   n_grid = 1000,
   method = c("new_wiggle"),
   center_fun = NULL,
-  type = c("mirror", "ridge"),
+  type = c("mirror", "ridge", "proportional"),
   true_range = c("both", "min_x", "max_x", "none"),
   ...
 )
@@ -49,7 +49,7 @@ geom_stream(
 
 \item{center_fun}{a function that returns the y center for each possible x in range of x.}
 
-\item{type}{one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis.}
+\item{type}{one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`}
 
 \item{true_range}{should the true data range be used or the estimation range?}
 
