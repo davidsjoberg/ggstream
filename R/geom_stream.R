@@ -233,9 +233,9 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #'  df <- data.frame(x = rep(1:10, 3),
 #'                   y = rpois(30, 2),
 #'                   group = sort(rep(c("A", "B", "C"), 10)))
-#' ggplot(df, aes(x, y, fill = group)) +
-#'   geom_stream()
-#'
+#' ggplot(df, aes(x, y, fill = group, label = group)) +
+#'   geom_stream() +
+#'   geom_stream_label(n_grid = 100)
 #'
 #' @export
 geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
