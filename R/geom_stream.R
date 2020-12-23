@@ -214,14 +214,14 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #' @param position change position
 #' @param na.rm remove missing values
 #' @param show.legend show legend in plot
-#' @param bw bandwidth of kernal density estimation
+#' @param bw bandwidth of kernel density estimation
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
 #' @param center_fun a function that returns the y center for each possible x in range of x.
-#' @param method Only `new wigle` is implemented so far.
-#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`
+#' @param method Only `new wiggle` is implemented so far.
+#' @param type one of `mirror` which stacks symmetrically around the x axis, or `ridge` which stacks from the x-axis, or `proportional`
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
-#' @param inherit.aes should the geom inherits aestethics
+#' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
 #' @return a data frame
@@ -277,14 +277,14 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
 #' @param position change position
 #' @param na.rm remove missing values
 #' @param show.legend show legend in plot
-#' @param bw bandwidth of kernal density estimation
+#' @param bw bandwidth of kernel density estimation
 #' @param n_grid number of x points that should be calculated. The higher the more smooth plot.
 #' @param center_fun a function that returns the y center for each possible x in range of x.
-#' @param method Only `new wigle` is implemented so far.
-#' @param type one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`.
+#' @param method Only `new wiggle` is implemented so far.
+#' @param type one of `mirror` which stacks symmetrically around the x axis, or `ridge` which stacks from the x-axis, or `proportional`.
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
-#' @param inherit.aes should the geom inherits aestethics
+#' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
 #'
