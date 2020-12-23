@@ -98,7 +98,7 @@ blockbusters %>%
 
 The main parameter to adjust in `geom_stream` is probably the bandwidth,
 or `bw`. A lower bandwidth creates a more bumpy plot and a higher
-bandwidth smoothens out some variation. Below is an illustration of how
+bandwidth smooth out some variation. Below is an illustration of how
 different bandwidths affect the stream plot.
 
 ``` r
