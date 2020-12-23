@@ -4,3 +4,4 @@
 ^data-raw$
 ^README\.Rmd$
 ^\.github$
+^cran-comments\.md$
