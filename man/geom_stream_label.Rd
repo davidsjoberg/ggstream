@@ -21,6 +21,7 @@ geom_stream_label(
   center_fun = NULL,
   type = c("mirror", "ridge", "proportional"),
   true_range = c("both", "min_x", "max_x", "none"),
+  sorting = c("none", "onset", "inside_out"),
   ...
 )
 }
@@ -35,23 +36,25 @@ geom_stream_label(
 
 \item{show.legend}{show legend in plot}
 
-\item{inherit.aes}{should the geom inherits aestethics}
+\item{inherit.aes}{should the geom inherits aesthetics}
 
 \item{na.rm}{remove missing values}
 
-\item{bw}{bandwidth of kernal density estimation}
+\item{bw}{bandwidth of kernel density estimation}
 
 \item{extra_span}{How many extra range should be used in estimation? Percent of x range added to min and max.}
 
 \item{n_grid}{number of x points that should be calculated. The higher the more smooth plot.}
 
-\item{method}{Only `new wigle` is implemented so far.}
+\item{method}{Only `new wiggle` is implemented so far.}
 
 \item{center_fun}{a function that returns the y center for each possible x in range of x.}
 
-\item{type}{one of `mirror` which stacks symmetrically aroudn the x axis, or `ridge` which stacks from the x-axis, or `proportional`.}
+\item{type}{one of `mirror` which stacks symmetrically around the x axis, or `ridge` which stacks from the x-axis, or `proportional`.}
 
 \item{true_range}{should the true data range be used or the estimation range?}
+
+\item{sorting}{Should the groups be sorted. Either the default 'none', 'onset' or 'inside_out'}
 
 \item{...}{other arguments to be passed to the geom}
 }
@@ -59,4 +62,15 @@ geom_stream_label(
 geom_stream_label
 
 geom to create labels to a geom_stream plot
+}
+\examples{
+library(ggplot2)
+set.seed(123)
+ df <- data.frame(x = rep(1:10, 3),
+                  y = rpois(30, 2),
+                  group = sort(rep(c("A", "B", "C"), 10)))
+ggplot(df, aes(x, y, fill = group, label = group)) +
+  geom_stream() +
+  geom_stream_label(n_grid = 100)
+
 }

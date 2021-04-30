@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
 library(dplyr)
 library(ggplot2)
 library(scales)
+library(purrr)
 library(ggstream)
 options(warn = -1)
 ```
@@ -174,6 +175,41 @@ base <- ggplot(blockbusters, aes(year, box_office, fill = genre)) +
 (base +  geom_stream(extra_span = .2) + geom_stream(extra_span = .2, true_range = "none", alpha = .3) + ggtitle("extra_span = .2")) /
 (base +  geom_stream(extra_span = .2, true_range = "none") + ggtitle("extra_span = .2 and true_range = \"none\""))
 ```
+
+## Sorting
+
+Another feature of stream plots is the sorting of groups in the stacking. The default of `ggstream` is to stack as factor order of the `fill` aesthetics. However, `ggstream` supports two other stackning sorting options. The `onset` and `inside_out`.
+
+```{r, fig.width=7, fig.height=7, dpi = 400}
+library(patchwork)
+set.seed(123)
+df <- map_dfr(1:30, ~{
+  x <- 1:sample(1:70, 1)
+  tibble(x = x + sample(1:150, 1)) %>% 
+    mutate(y = sample(1:10, length(x), replace = T),
+           k = .x %>% as.character())
+})
+
+p <- df %>% 
+  ggplot(aes(x, y, fill = k)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+p1 <- p + 
+  geom_stream(color = "black") +
+  ggtitle("None (Default)")
+
+p2 <- p + geom_stream(color = "black", sorting = "inside_out") +
+  ggtitle("Inside out")
+
+p3 <- p +
+  geom_stream(color = "black", sorting = "onset") +
+  ggtitle("Onset")
+
+p1 / p2 / p3
+
+```
+
 
 ## Final remarks
 

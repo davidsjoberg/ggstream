@@ -38,6 +38,25 @@ get_position <- function(..df) {
               y = .data$ymin + (.data$ymax - .data$ymin) / 2)
 }
 
+sort_inside_out_naive <- function(df) {
+  df %>%
+    sort_onset %>%
+    dplyr::mutate(onset_order = as.numeric(.data$fill),
+           # even first desc, then odd ascending
+           insideout_order = dplyr::if_else(.data$onset_order %% 2 == 0,
+                                      -.data$onset_order,
+                                      .data$onset_order),
+           fill = forcats::fct_reorder(.data$fill, .data$insideout_order))
+}
+
+
+sort_onset <- function(df) {
+  df %>%
+    # Put zero or negative values last
+    dplyr::arrange(.data$y <= 0, -.data$x) %>%
+    dplyr::mutate(fill = forcats::fct_inorder(.data$fill))
+}
+
 
 stack_densities <- function(data,
                             bw = bw,
@@ -121,11 +140,23 @@ stack_densities <- function(data,
 
 StatStreamDensity <- ggplot2::ggproto("StatStreamDensity", ggplot2::Stat,
                              required_aes = c("x", "y", "fill"),
-                             extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "type"),
+                             extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "type", "sorting"),
                              setup_data = function(data, params) {
 
                                if(is.character(data$fill)) {
                                  data$fill <- factor(data$fill)
+                               }
+
+                               # sorting
+                               if(params$sorting == "inside_out") {
+                                 data <- data %>% sort_inside_out_naive() %>%
+                                   dplyr::arrange(.data$fill) %>%
+                                   dplyr::mutate(group = as.numeric(.data$fill))
+                               }
+                               if(params$sorting == "onset") {
+                                 data <- data %>% sort_onset() %>%
+                                   dplyr::arrange(.data$fill) %>%
+                                   dplyr::mutate(group = as.numeric(.data$fill))
                                }
 
                                if(params$na.rm) {
@@ -164,11 +195,23 @@ StatStreamDensity <- ggplot2::ggproto("StatStreamDensity", ggplot2::Stat,
 
 StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat,
                              required_aes = c("x", "y", "fill"),
-                             extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "type"),
+                             extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "sorting", "type"),
                              setup_data = function(data, params) {
 
                                if(is.character(data$fill)) {
                                  data$fill <- factor(data$fill)
+                               }
+
+                               # sorting
+                               if(params$sorting == "inside_out") {
+                                 data <- data %>% sort_inside_out_naive() %>%
+                                   dplyr::arrange(fill) %>%
+                                   dplyr::mutate(group = as.numeric(fill))
+                               }
+                               if(params$sorting == "onset") {
+                                 data <- data %>% sort_onset() %>%
+                                   dplyr::arrange(fill) %>%
+                                   dplyr::mutate(group = as.numeric(fill))
                                }
 
                                if(params$na.rm) {
@@ -221,6 +264,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #' @param type one of `mirror` which stacks symmetrically around the x axis, or `ridge` which stacks from the x-axis, or `proportional`
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
+#' @param sorting Should the groups be sorted. Either the default 'none', 'onset' or 'inside_out'
 #' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
@@ -234,8 +278,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #'                   y = rpois(30, 2),
 #'                   group = sort(rep(c("A", "B", "C"), 10)))
 #' ggplot(df, aes(x, y, fill = group, label = group)) +
-#'   geom_stream() +
-#'   geom_stream_label(n_grid = 100)
+#'   geom_stream()
 #'
 #' @export
 geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
@@ -248,11 +291,14 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
                        method = c("new_wiggle"),
                        center_fun = NULL,
                        type = c("mirror", "ridge", "proportional"),
-                       true_range = c("both", "min_x", "max_x", "none"), ...) {
+                       true_range = c("both", "min_x", "max_x", "none"),
+                       sorting = c("none", "onset", "inside_out"), ...) {
 
   method <- match.arg(method)
   type <- match.arg(type)
   true_range <- match.arg(true_range)
+  sorting <- match.arg(sorting)
+
   ggplot2::layer(
     stat = StatStreamDensity, data = data, mapping = mapping, geom = geom,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
@@ -263,7 +309,8 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
                   n_grid = n_grid,
                   type = type,
                   true_range = true_range,
-                  method = method, ...)
+                  method = method,
+                  sorting = sorting, ...)
   )
 }
 
@@ -284,10 +331,19 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
 #' @param type one of `mirror` which stacks symmetrically around the x axis, or `ridge` which stacks from the x-axis, or `proportional`.
 #' @param true_range should the true data range be used or the estimation range?
 #' @param extra_span How many extra range should be used in estimation? Percent of x range added to min and max.
+#' @param sorting Should the groups be sorted. Either the default 'none', 'onset' or 'inside_out'
 #' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
-#'
+#' @examples
+#' library(ggplot2)
+#' set.seed(123)
+#'  df <- data.frame(x = rep(1:10, 3),
+#'                   y = rpois(30, 2),
+#'                   group = sort(rep(c("A", "B", "C"), 10)))
+#' ggplot(df, aes(x, y, fill = group, label = group)) +
+#'   geom_stream() +
+#'   geom_stream_label(n_grid = 100)
 #'
 #' @export
 geom_stream_label <- function(mapping = NULL, data = NULL, geom = "text",
@@ -300,10 +356,12 @@ geom_stream_label <- function(mapping = NULL, data = NULL, geom = "text",
                        method = c("new_wiggle"),
                        center_fun = NULL,
                        type = c("mirror", "ridge", "proportional"),
-                       true_range = c("both", "min_x", "max_x", "none"), ...) {
+                       true_range = c("both", "min_x", "max_x", "none"),
+                       sorting = c("none", "onset", "inside_out"), ...) {
   method <- match.arg(method)
   type <- match.arg(type)
   true_range <- match.arg(true_range)
+  sorting <- match.arg(sorting)
   ggplot2::layer(
     stat = StatStreamDensityText, data = data, mapping = mapping, geom = geom,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
@@ -314,7 +372,8 @@ geom_stream_label <- function(mapping = NULL, data = NULL, geom = "text",
                   n_grid = n_grid,
                   type = type,
                   true_range = true_range,
-                  method = method, ...)
+                  method = method,
+                  sorting = sorting, ...)
   )
 }
 

@@ -139,6 +139,44 @@ base <- ggplot(blockbusters, aes(year, box_office, fill = genre)) +
 
 <img src="man/figures/README-cars3344-1.png" width="100%" />
 
+## Sorting
+
+Another feature of stream plots is the sorting of groups in the
+stacking. The default of `ggstream` is to stack as factor order of the
+`fill` aesthetics. However, `ggstream` supports two other stackning
+sorting options. The `onset` and `inside_out`.
+
+``` r
+library(patchwork)
+set.seed(123)
+df <- map_dfr(1:30, ~{
+  x <- 1:sample(1:70, 1)
+  tibble(x = x + sample(1:150, 1)) %>% 
+    mutate(y = sample(1:10, length(x), replace = T),
+           k = .x %>% as.character())
+})
+
+p <- df %>% 
+  ggplot(aes(x, y, fill = k)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+p1 <- p + 
+  geom_stream(color = "black") +
+  ggtitle("None (Default)")
+
+p2 <- p + geom_stream(color = "black", sorting = "inside_out") +
+  ggtitle("Inside out")
+
+p3 <- p +
+  geom_stream(color = "black", sorting = "onset") +
+  ggtitle("Onset")
+
+p1 / p2 / p3
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
 ## Final remarks
 
 The `ggstream` package provides some flexible ways to make stream plots
