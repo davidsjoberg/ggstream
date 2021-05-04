@@ -13,7 +13,7 @@ geom_stream(
   position = "identity",
   show.legend = NA,
   inherit.aes = TRUE,
-  na.rm = T,
+  na.rm = TRUE,
   bw = 0.75,
   extra_span = 0.01,
   n_grid = 1000,
@@ -59,7 +59,7 @@ geom_stream(
 \item{...}{other arguments to be passed to the geom}
 }
 \value{
-a data frame
+a 'ggplot' layer
 }
 \description{
 geom_stream

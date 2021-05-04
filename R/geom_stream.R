@@ -70,8 +70,8 @@ stack_densities <- function(data,
   if(is.null(center_fun)) {center_fun <- function(x) {return(0)}
   }
 
-  .min_x <- range(data$x, na.rm = T)[1]
-  .max_x <- range(data$x, na.rm = T)[2]
+  .min_x <- range(data$x, na.rm = TRUE)[1]
+  .max_x <- range(data$x, na.rm = TRUE)[2]
   .range_length <- .max_x - .min_x
   .min_x_est <- .min_x - .range_length * extra_span
   .max_x_est <- .max_x + .range_length * extra_span
@@ -113,7 +113,7 @@ stack_densities <- function(data,
 
   if(type == "proportional") {
     data <- data %>%
-    dplyr::mutate(y = .data$y / sum(.data$y, na.rm = T))
+    dplyr::mutate(y = .data$y / sum(.data$y, na.rm = TRUE))
   }
   data <- data %>%
     dplyr::mutate(ymin = purrr::accumulate(.data$y, ~.x + .y,
@@ -268,7 +268,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
-#' @return a data frame
+#' @return a 'ggplot' layer
 #'
 #' @examples
 #'
@@ -284,7 +284,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
                        position = "identity", show.legend = NA,
                        inherit.aes = TRUE,
-                       na.rm = T,
+                       na.rm = TRUE,
                        bw = 0.75,
                        extra_span = 0.01,
                        n_grid = 1000,
@@ -335,6 +335,8 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
 #' @param inherit.aes should the geom inherits aesthetics
 #' @param ... other arguments to be passed to the geom
 #'
+#' @return a 'ggplot' layer
+#'
 #' @examples
 #' library(ggplot2)
 #' set.seed(123)
@@ -349,7 +351,7 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
 geom_stream_label <- function(mapping = NULL, data = NULL, geom = "text",
                        position = "identity", show.legend = NA,
                        inherit.aes = TRUE,
-                       na.rm = T,
+                       na.rm = TRUE,
                        bw = 0.75,
                        extra_span = 0.01,
                        n_grid = 100,

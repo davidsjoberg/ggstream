@@ -1,3 +1,6 @@
+## Resubmission
+* All comments fixed
+
 ## Test environments
 * local R installation, R 3.6.3 (Windows 10)
 * windows latest, R 4.0.3 (github action)

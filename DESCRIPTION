@@ -1,12 +1,12 @@
 Package: ggstream
-Title: Create Streamplots i Ggplot
+Title: Create Streamplots in 'ggplot2'
 Version: 0.1.0
 Authors@R: 
     person(given = "David",
            family = "Sjoberg",
            role = c("aut", "cre"),
            email = "dav.sjob@gmail.com")
-Description: Make streamplots in ggplot. Suitable for showing area over time.
+Description: Make smoothed stacked area charts in 'ggplot2'. Stream plots are useful to show magnitude trends over time.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

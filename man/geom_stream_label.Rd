@@ -13,7 +13,7 @@ geom_stream_label(
   position = "identity",
   show.legend = NA,
   inherit.aes = TRUE,
-  na.rm = T,
+  na.rm = TRUE,
   bw = 0.75,
   extra_span = 0.01,
   n_grid = 100,
@@ -57,6 +57,9 @@ geom_stream_label(
 \item{sorting}{Should the groups be sorted. Either the default 'none', 'onset' or 'inside_out'}
 
 \item{...}{other arguments to be passed to the geom}
+}
+\value{
+a 'ggplot' layer
 }
 \description{
 geom_stream_label
