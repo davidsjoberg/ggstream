@@ -12,12 +12,15 @@ The goal of `ggstream` is to create a simple but powerful implementation
 of streamplot/streamgraph in `ggplot2`. A streamplot is a stacked area
 plot mostly used for time series.
 
-This is a development, expect breaking changes before submission to
-CRAN.
-
 ## Installation
 
-You can install the development version of ggstream from github with:
+Install `ggstream` from CRAN:
+
+``` r
+install.packages("ggstream")
+```
+
+Or you can install the development version of ggstream from github with:
 
 ``` r
 remotes::install_github("davidsjoberg/ggstream")
@@ -41,9 +44,21 @@ Which is equivalent to a stacked area chart.
 #### Type: Proportional
 
 The type `proportional` shows the share of each group in percent.
-Stacked like the `ridge` type.
+Stacked like the `ridge`
+type.
 
 <img src="man/figures/README-pressure3-1.png" width="100%" />
+
+#### Great community uses
+
+![Pic](https://raw.githubusercontent.com/Z3tt/TidyTuesday/master/plots/2020_27/2020_27_Xmen_clean.png)
+By Cédric Scherer. Code
+[here](https://github.com/z3tt/TidyTuesday/blob/master/R/2020_27_ClaremontRunXMen.Rmd).
+
+![Pic](https://github.com/gkaramanis/tidytuesday/raw/febd0c736b2aacd506230e3fa4c02577ae551e86/2021/2021-week11/plots/games.png)
+
+By Georgios Karamanis. Code
+[here](https://github.com/gkaramanis/tidytuesday/blob/febd0c736b2aacd506230e3fa4c02577ae551e86/2021/2021-week11/games.R).
 
 ## Basic usage
 
@@ -175,7 +190,7 @@ p3 <- p +
 p1 / p2 / p3
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
 ## Final remarks
 
