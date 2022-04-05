@@ -8,6 +8,8 @@ Authors@R:
            email = "dav.sjob@gmail.com")
 Description: Make smoothed stacked area charts in 'ggplot2'. Stream plots are useful to show magnitude trends over time.
 License: MIT + file LICENSE
+URL: https://github.com/davidsjoberg/ggstream
+BugReports: https://github.com/davidsjoberg/ggstream/issues
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 3.6.0)
