@@ -123,7 +123,7 @@ stack_densities <- function(data,
     dplyr::ungroup()
 
   data <- data %>%
-    dplyr::mutate_at(dplyr::vars("ymin", "ymax"), ~{. + center_fun(.data$x)})
+    dplyr::mutate(dplyr::across(c("ymin", "ymax"), ~ .x + center_fun(.data$x)))
 
   data <- purrr::map_dfr(data %>% split(data$group),
                      ~{
@@ -138,6 +138,18 @@ stack_densities <- function(data,
 }
 
 
+#' ggstream ggproto objects
+#'
+#' `StatStreamDensity` and `StatStreamDensityText` are exported so custom
+#' layers can be built on top of the same `Stat` used by [geom_stream()] and
+#' [geom_stream_label()] (requested upstream in
+#' davidsjoberg/ggstream#25). Not meant to be constructed directly.
+#'
+#' @rdname ggstream-ggproto
+#' @keywords internal
+#' @format NULL
+#' @usage NULL
+#' @export
 StatStreamDensity <- ggplot2::ggproto("StatStreamDensity", ggplot2::Stat,
                              required_aes = c("x", "y", "fill"),
                              extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "type", "sorting"),
@@ -193,6 +205,10 @@ StatStreamDensity <- ggplot2::ggproto("StatStreamDensity", ggplot2::Stat,
                              }
 )
 
+#' @rdname ggstream-ggproto
+#' @format NULL
+#' @usage NULL
+#' @export
 StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat,
                              required_aes = c("x", "y", "fill"),
                              extra_params = c("bw", "n_grid", "extra_span", "na.rm", "center_fun", "method", "true_range", "sorting", "type"),
@@ -205,13 +221,13 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
                                # sorting
                                if(params$sorting == "inside_out") {
                                  data <- data %>% sort_inside_out_naive() %>%
-                                   dplyr::arrange(fill) %>%
-                                   dplyr::mutate(group = as.numeric(fill))
+                                   dplyr::arrange(.data$fill) %>%
+                                   dplyr::mutate(group = as.numeric(.data$fill))
                                }
                                if(params$sorting == "onset") {
                                  data <- data %>% sort_onset() %>%
-                                   dplyr::arrange(fill) %>%
-                                   dplyr::mutate(group = as.numeric(fill))
+                                   dplyr::arrange(.data$fill) %>%
+                                   dplyr::mutate(group = as.numeric(.data$fill))
                                }
 
                                if(params$na.rm) {
@@ -247,7 +263,7 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
                              }
 )
 
-#' @title geom_stream
+#' geom_stream
 #'
 #' geom to create stream plots
 #'
@@ -269,6 +285,8 @@ StatStreamDensityText <- ggplot2::ggproto("StatStreamDensityText", ggplot2::Stat
 #' @param ... other arguments to be passed to the geom
 #'
 #' @return a 'ggplot' layer
+#'
+#' @importFrom tidyr drop_na
 #'
 #' @examples
 #'
@@ -314,7 +332,7 @@ geom_stream <- function(mapping = NULL, data = NULL, geom = "polygon",
   )
 }
 
-#' @title geom_stream_label
+#' geom_stream_label
 #'
 #' geom to create labels to a geom_stream plot
 #'

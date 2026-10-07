@@ -2,9 +2,7 @@
 % Please edit documentation in R/geom_stream.R
 \name{geom_stream}
 \alias{geom_stream}
-\title{geom_stream
-
-geom to create stream plots}
+\title{geom_stream}
 \usage{
 geom_stream(
   mapping = NULL,
@@ -62,8 +60,6 @@ geom_stream(
 a 'ggplot' layer
 }
 \description{
-geom_stream
-
 geom to create stream plots
 }
 \examples{
