@@ -7,14 +7,6 @@ replace_values <- function(df) {
 
 }
 
-decimal_places <- function(x) {
-  if (abs(x - round(x)) > .Machine$double.eps^0.5) {
-    nchar(strsplit(sub('0+$', '', as.character(x)), ".", fixed = TRUE)[[1]][[2]])
-  } else {
-    return(0)
-  }
-}
-
 
 new_wiggle <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x) {
 
@@ -34,7 +26,14 @@ new_wiggle <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x) {
     .x %>%
       dplyr::mutate(x = purrr::map_dbl(.data$x, function(q) {
         full_values$x[which.min(abs(full_values$x - q))]
-      }))
+      })) %>%
+      # Two or more raw x points can snap to the same grid point (dense or
+      # discrete x). Aggregate before merging, or merge() below cross-joins
+      # the duplicates and inflates the row count past n_grid -- the crash
+      # reported upstream as davidsjoberg/ggstream#16 and #18.
+      dplyr::group_by(.data$x) %>%
+      dplyr::summarise(y = sum(.data$y, na.rm = TRUE),
+                        group = dplyr::first(.data$group), .groups = "drop")
   })
 
   list <- lapply(list, function(x) merge(full_values, x, by = "x", all.x = TRUE))
@@ -82,7 +81,7 @@ new_wiggle <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x) {
 
       yy[, iStream * 2] <- yy[, iStream * 2 - 1] + tmpVals
 
-    } else {
+    } else if (nStreams > 1) {
 
       baseline <- array(0, timePoints)
 
@@ -101,6 +100,31 @@ new_wiggle <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x) {
       yy[, 1] <- -stats::predict(stats::smooth.spline(baseline), spar = bw)$y
 
       yy[, 2] <- yy[, iStream * 2 - 1] + tmpVals
+
+    } else {
+
+      # nStreams == 1: the only case that actually occurs, since new_wiggle()
+      # is always called on one already-split group at a time (see
+      # stack_densities()'s purrr::map_dfr(data %>% split(data$group), fun)).
+      # The baseline-offset branch above is multi-stream centring math left
+      # over from an earlier, differently-structured implementation. With a
+      # single column, smooth.spline() is a linear smoother at fixed spar (a
+      # fixed smoother matrix S, so S %*% (k * v) == k * (S %*% v) for any
+      # scalar k), which makes that branch's output provably
+      # yy[,2] == 1.5 * tmpVals for every input.
+      #
+      # NOTE: this is dead/vestigial multi-stream code being simplified for
+      # clarity, not a fix for davidsjoberg/ggstream#19 ("y values far too
+      # high"). Verified directly (before and after this change, on both a
+      # synthetic case and the bundled blockbusters data): the mean_y /
+      # mean_y_post rescale a few lines down divides by mean(1.5 * tmpVals),
+      # so the constant 1.5 cancels algebraically -- final output is
+      # identical whichever branch computes the intermediate value. #19's
+      # actual magnitude discrepancy is NOT explained by this code path;
+      # left open (see fork NEWS/issue notes), not guessed at further.
+
+      yy[, 1] <- 0
+      yy[, 2] <- tmpVals
 
     }
   }
@@ -121,6 +145,15 @@ new_wiggle <- function(.df, bw = bw, n_grid = n_grid, min_x, max_x) {
                     y = yy[, iStream * 2],
                     group = as.integer(.group))
   mean_y_post <- mean(out$y)
-  out %>%
-    dplyr::mutate(y = y * mean_y / mean_y_post)
+  if (isTRUE(all.equal(mean_y_post, 0)) || mean_y_post == 0) {
+    # An all-zero (or all-near-zero) group divides mean_y/mean_y_post by
+    # zero, turning y into NaN here -- which then poisons every other
+    # group's ymin/ymax once stack_densities() accumulates across groups.
+    # An all-zero group's stream is legitimately flat at zero, so return
+    # that directly instead of NaN (davidsjoberg/ggstream#23, #15).
+    out %>% dplyr::mutate(y = 0)
+  } else {
+    out %>%
+      dplyr::mutate(y = y * mean_y / mean_y_post)
+  }
   }

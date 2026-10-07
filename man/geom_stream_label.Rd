@@ -2,9 +2,7 @@
 % Please edit documentation in R/geom_stream.R
 \name{geom_stream_label}
 \alias{geom_stream_label}
-\title{geom_stream_label
-
-geom to create labels to a geom_stream plot}
+\title{geom_stream_label}
 \usage{
 geom_stream_label(
   mapping = NULL,
@@ -62,8 +60,6 @@ geom_stream_label(
 a 'ggplot' layer
 }
 \description{
-geom_stream_label
-
 geom to create labels to a geom_stream plot
 }
 \examples{
